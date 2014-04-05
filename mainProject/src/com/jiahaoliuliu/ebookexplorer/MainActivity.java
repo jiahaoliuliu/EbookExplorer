@@ -1,6 +1,8 @@
 package com.jiahaoliuliu.ebookexplorer;
 
 import com.dropbox.sync.android.DbxAccountManager;
+import com.dropbox.sync.android.DbxException.Unauthorized;
+import com.dropbox.sync.android.DbxFileSystem;
 
 import android.app.Activity;
 import android.app.ActionBar;
@@ -26,7 +28,11 @@ public class MainActivity extends Activity {
 	private static final String APP_KEY = "znc9n35hujd5e7y";
 	private static final String APP_SECRET = "9j5xc567qroisd7";
 
+	// The dropbox account manager
 	private DbxAccountManager mDbxAcctMgr;
+
+	// The dropbox file system
+	private DbxFileSystem dbxFs;
 	private Context context;
 
 	// Layout
@@ -60,9 +66,7 @@ public class MainActivity extends Activity {
 		// Check if there is any account linked
 		if (mDbxAcctMgr.hasLinkedAccount()) {
 			Log.v(LOG_TAG, "The app started with an account already linked");
-			// Show the list view
-			linkAccountButton.setVisibility(View.GONE);
-			ebooksListView.setVisibility(View.VISIBLE);
+			retrieveEbooks();
 		}
 	}
 	
@@ -71,6 +75,7 @@ public class MainActivity extends Activity {
 	    if (requestCode == REQUEST_LINK_TO_DBX) {
 	        if (resultCode == Activity.RESULT_OK && mDbxAcctMgr.hasLinkedAccount()) {
 	        	Log.v(LOG_TAG, "DropBox account linked correctly");
+	        	retrieveEbooks();
 	        } else {
 	        	Log.w(LOG_TAG, "Error linking DropBox Account. The result is " + resultCode);
 	        	Toast.makeText(
@@ -81,6 +86,28 @@ public class MainActivity extends Activity {
 	    } else {
 	        super.onActivityResult(requestCode, resultCode, data);
 	    }
+	}
+	
+	/**
+	 * Retrieve the list of ebooks (with epub extension)
+	 * PreCondition: The account must be linked
+	 */
+	private void retrieveEbooks() {
+		// Precondition
+		if ((mDbxAcctMgr == null) || (!mDbxAcctMgr.hasLinkedAccount())) {
+			return;
+		}
+
+		try {
+			dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
+			// Show the list view
+			linkAccountButton.setVisibility(View.GONE);
+			ebooksListView.setVisibility(View.VISIBLE);
+
+			
+		} catch (Unauthorized e) {
+			Log.e(LOG_TAG, "Error getting the Dbx File system", e);
+		}
 	}
 
 	// ==================================== Menu ==========================================

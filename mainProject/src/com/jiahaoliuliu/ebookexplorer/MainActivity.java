@@ -5,7 +5,6 @@ import java.util.List;
 import com.dropbox.sync.android.DbxAccountManager;
 import com.dropbox.sync.android.DbxFileInfo;
 import com.dropbox.sync.android.DbxPath;
-import com.dropbox.sync.android.DbxException.Unauthorized;
 import com.dropbox.sync.android.DbxFileSystem;
 import com.jiahaoliuliu.ebookexplorer.util.FolderLoader;
 
@@ -20,6 +19,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -63,6 +63,16 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 		});
 
 		ebooksListView = (ListView)findViewById(R.id.ebooksListView);
+		ebooksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> adapterView, View view, int position,
+					long id) {
+				DbxFileInfo info = (DbxFileInfo)ebooksListView.getAdapter().getItem(position);
+				Log.v(LOG_TAG, "The user has clicked on the file " + info.path.getName() +
+						"with the path " + info.path);
+			}
+		});
 	}
 
 	@Override

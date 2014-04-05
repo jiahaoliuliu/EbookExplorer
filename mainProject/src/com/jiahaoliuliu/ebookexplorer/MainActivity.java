@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.Toast;
 import android.os.Build;
 
@@ -25,9 +26,12 @@ public class MainActivity extends Activity {
 	private static final String APP_KEY = "znc9n35hujd5e7y";
 	private static final String APP_SECRET = "9j5xc567qroisd7";
 
-	private Button linkAccountButton;
 	private DbxAccountManager mDbxAcctMgr;
 	private Context context;
+
+	// Layout
+	private Button linkAccountButton;
+	private ListView ebooksListView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,12 +49,27 @@ public class MainActivity extends Activity {
 				mDbxAcctMgr.startLink((Activity)MainActivity.this, REQUEST_LINK_TO_DBX);
 			}
 		});
+
+		ebooksListView = (ListView)findViewById(R.id.ebooksListView);
 	}
 
 	@Override
+	protected void onResume() {
+		super.onResume();
+		
+		// Check if there is any account linked
+		if (mDbxAcctMgr.hasLinkedAccount()) {
+			Log.v(LOG_TAG, "The app started with an account already linked");
+			// Show the list view
+			linkAccountButton.setVisibility(View.GONE);
+			ebooksListView.setVisibility(View.VISIBLE);
+		}
+	}
+	
+	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 	    if (requestCode == REQUEST_LINK_TO_DBX) {
-	        if (resultCode == Activity.RESULT_OK) {
+	        if (resultCode == Activity.RESULT_OK && mDbxAcctMgr.hasLinkedAccount()) {
 	        	Log.v(LOG_TAG, "DropBox account linked correctly");
 	        } else {
 	        	Log.w(LOG_TAG, "Error linking DropBox Account. The result is " + resultCode);
@@ -64,6 +83,7 @@ public class MainActivity extends Activity {
 	    }
 	}
 
+	// ==================================== Menu ==========================================
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

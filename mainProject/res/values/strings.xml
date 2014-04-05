@@ -5,6 +5,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="link_account_button">Link my DropBox Account</string>
+    <string name="is_folder">Folder</string>
 
     <string name="error_message_account_not_linked">Error linking your dropbox account. Could you check it?</string>
 </resources>

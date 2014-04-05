@@ -152,9 +152,8 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
     @Override
     public void onLoadFinished(Loader<List<DbxFileInfo>> loader, List<DbxFileInfo> data) {
 
-    	// TODO: Set the adapter for the data
-        //Log.v(LOG_TAG, "Data arrived " + data.toString());
-        //ebooksListView.setAdapter(new FolderAdapter(this, data));
+        Log.v(LOG_TAG, "Data arrived " + data.toString());
+        ebooksListView.setAdapter(new FolderAdapter(this, data));
     }
 
     @Override

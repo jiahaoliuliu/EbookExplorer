@@ -70,7 +70,13 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 					long id) {
 				DbxFileInfo info = (DbxFileInfo)ebooksListView.getAdapter().getItem(position);
 				Log.v(LOG_TAG, "The user has clicked on the file " + info.path.getName() +
-						"with the path " + info.path);
+						" with the path " + info.path);
+				
+				Intent startEbookDetailsActivityIntent = new Intent(MainActivity.this, EbookDetailsActivity.class);
+				startEbookDetailsActivityIntent.putExtra(EbookDetailsActivity.EBOOK_NAME_INTENT_KEY, info.path.getName());
+				startEbookDetailsActivityIntent.putExtra(EbookDetailsActivity.EBOOK_PATH_INTENT_KEY, info.path.toString());
+
+				startActivity(startEbookDetailsActivityIntent);
 			}
 		});
 	}

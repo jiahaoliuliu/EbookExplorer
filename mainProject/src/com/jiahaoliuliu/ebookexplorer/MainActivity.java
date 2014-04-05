@@ -1,32 +1,37 @@
 package com.jiahaoliuliu.ebookexplorer;
 
+import java.util.List;
+
 import com.dropbox.sync.android.DbxAccountManager;
+import com.dropbox.sync.android.DbxFileInfo;
+import com.dropbox.sync.android.DbxPath;
 import com.dropbox.sync.android.DbxException.Unauthorized;
 import com.dropbox.sync.android.DbxFileSystem;
+import com.jiahaoliuliu.ebookexplorer.util.FolderLoader;
 
 import android.app.Activity;
-import android.app.ActionBar;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.os.Build;
 
-public class MainActivity extends Activity {
+public class MainActivity extends FragmentActivity implements LoaderCallbacks<List<DbxFileInfo>> {
 
 	private static final String LOG_TAG = MainActivity.class.getSimpleName();
 	private static final int REQUEST_LINK_TO_DBX = 1000;
 	private static final String APP_KEY = "znc9n35hujd5e7y";
 	private static final String APP_SECRET = "9j5xc567qroisd7";
+	
+	private LoaderCallbacks<List<DbxFileInfo>> mCallbacks;
 
 	// The dropbox account manager
 	private DbxAccountManager mDbxAcctMgr;
@@ -46,6 +51,7 @@ public class MainActivity extends Activity {
 		
 	    mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(), APP_KEY, APP_SECRET);
 	    context = this;
+	    mCallbacks = this;
 
 		linkAccountButton = (Button)findViewById(R.id.linkAccountButton);
 		linkAccountButton.setOnClickListener(new View.OnClickListener() {
@@ -66,7 +72,11 @@ public class MainActivity extends Activity {
 		// Check if there is any account linked
 		if (mDbxAcctMgr.hasLinkedAccount()) {
 			Log.v(LOG_TAG, "The app started with an account already linked");
-			retrieveEbooks();
+			
+			// It shouldn't restart the view. The view will be restarted when 
+			// the user linked the activity
+			boolean restartView = false;
+			retrieveEbooks(restartView);
 		}
 	}
 	
@@ -75,7 +85,10 @@ public class MainActivity extends Activity {
 	    if (requestCode == REQUEST_LINK_TO_DBX) {
 	        if (resultCode == Activity.RESULT_OK && mDbxAcctMgr.hasLinkedAccount()) {
 	        	Log.v(LOG_TAG, "DropBox account linked correctly");
-	        	retrieveEbooks();
+
+	        	// Restart the view because there could be new data
+	        	boolean restartView = true;
+	        	retrieveEbooks(restartView);
 	        } else {
 	        	Log.w(LOG_TAG, "Error linking DropBox Account. The result is " + resultCode);
 	        	Toast.makeText(
@@ -92,21 +105,21 @@ public class MainActivity extends Activity {
 	 * Retrieve the list of ebooks (with epub extension)
 	 * PreCondition: The account must be linked
 	 */
-	private void retrieveEbooks() {
+	private void retrieveEbooks(boolean shouldRestartView) {
 		// Precondition
 		if ((mDbxAcctMgr == null) || (!mDbxAcctMgr.hasLinkedAccount())) {
 			return;
 		}
 
-		try {
-			dbxFs = DbxFileSystem.forAccount(mDbxAcctMgr.getLinkedAccount());
-			// Show the list view
-			linkAccountButton.setVisibility(View.GONE);
-			ebooksListView.setVisibility(View.VISIBLE);
+		// Show the list view
+		linkAccountButton.setVisibility(View.GONE);
+		ebooksListView.setVisibility(View.VISIBLE);
 
-			
-		} catch (Unauthorized e) {
-			Log.e(LOG_TAG, "Error getting the Dbx File system", e);
+		// Load the files
+		if (shouldRestartView) {
+			getSupportLoaderManager().restartLoader(0, null, mCallbacks);
+		} else {
+			getSupportLoaderManager().initLoader(0, null, mCallbacks);
 		}
 	}
 
@@ -129,4 +142,23 @@ public class MainActivity extends Activity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
+
+	// ==================================== list loader ==========================================
+	@Override
+	public Loader<List<DbxFileInfo>> onCreateLoader(int id, Bundle args) {
+        return new FolderLoader(this, mDbxAcctMgr, DbxPath.ROOT);
+	}
+
+    @Override
+    public void onLoadFinished(Loader<List<DbxFileInfo>> loader, List<DbxFileInfo> data) {
+
+    	// TODO: Set the adapter for the data
+        //Log.v(LOG_TAG, "Data arrived " + data.toString());
+        //ebooksListView.setAdapter(new FolderAdapter(this, data));
+    }
+
+    @Override
+    public void onLoaderReset(Loader<List<DbxFileInfo>> loader) {
+        // Do nothing.
+    }
 }

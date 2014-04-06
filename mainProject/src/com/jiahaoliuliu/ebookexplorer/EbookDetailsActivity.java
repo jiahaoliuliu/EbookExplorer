@@ -22,7 +22,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class EbookDetailsActivity extends SherlockActivity {
@@ -42,6 +44,7 @@ public class EbookDetailsActivity extends SherlockActivity {
 	private Context context;
 
 	private ImageView bookCoverImageView;
+	private TextView noCoverImageTextView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +60,7 @@ public class EbookDetailsActivity extends SherlockActivity {
 
 	    // Link the content
 	    bookCoverImageView = (ImageView)findViewById(R.id.bookCoverImageView);
+	    noCoverImageTextView = (TextView)findViewById(R.id.noCoverImageTextView);
 
 	    // Set home up button
 	    getSupportActionBar().setHomeButtonEnabled(true);
@@ -113,9 +117,11 @@ public class EbookDetailsActivity extends SherlockActivity {
 
 		    // If the book has cover image
 		    if (book.getCoverImage() != null) {
+		    	noCoverImageTextView.setVisibility(View.GONE);
 		    	InputStream inputStream = book.getCoverImage().getInputStream();
 			    Bitmap coverImage =
 			    		BitmapFactory.decodeStream(inputStream);
+			    bookCoverImageView.setVisibility(View.VISIBLE);
 			    bookCoverImageView.setImageBitmap(coverImage);
 		    }
 

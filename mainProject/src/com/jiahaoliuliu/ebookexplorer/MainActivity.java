@@ -17,14 +17,28 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.animation.Interpolator;
+import android.view.animation.OvershootInterpolator;
+import android.widget.FrameLayout;
 
 public class MainActivity extends FragmentActivity implements LoaderCallbacks<List<DbxFileInfo>> {
 
@@ -71,6 +85,7 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 		});
 
 		ebooksListView = (ListView)findViewById(R.id.ebooksListView);
+		/*
 		ebooksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
 			@Override
@@ -86,7 +101,18 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 
 				startActivity(startEbookDetailsActivityIntent);
 			}
-		});
+		});*/
+		
+	    final GestureDetector gestureDectector = new GestureDetector(this, new GestureListener());        
+	    ebooksListView.setOnTouchListener(new OnTouchListener() {
+
+	                @Override
+	                public boolean onTouch(View v, MotionEvent event) {
+	                    gestureDectector.onTouchEvent(event);
+	                    return true;
+	                }
+	            }
+	    );
 	}
 
 	@Override
@@ -197,5 +223,34 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
     @Override
     public void onLoaderReset(Loader<List<DbxFileInfo>> loader) {
         // Do nothing.
+    }
+    
+    public class GestureListener extends GestureDetector.SimpleOnGestureListener {
+
+        public boolean onDown(MotionEvent e) {
+            return true;
+        }
+
+        public boolean onDoubleTap(MotionEvent e) {
+            Log.d(LOG_TAG, "Yes, Clicked " + e.getX() + ", " + e.getY());
+            int position = ebooksListView.pointToPosition((int)e.getX(), (int)e.getY());
+            Log.d(LOG_TAG, "The user has clicked on the position " + position);
+
+            // If the user has clicked on a wrong position
+            if (position == -1 || position == AdapterView.INVALID_ROW_ID) {
+            	return false;
+            }
+
+			DbxFileInfo info = (DbxFileInfo)ebooksListView.getAdapter().getItem(position);
+			Log.v(LOG_TAG, "The user has clicked on the file " + info.path.getName() +
+					" with the path " + info.path);
+
+			Intent startEbookDetailsActivityIntent = new Intent(MainActivity.this, EbookDetailsActivity.class);
+			startEbookDetailsActivityIntent.putExtra(EbookDetailsActivity.EBOOK_NAME_INTENT_KEY, info.path.getName());
+			startEbookDetailsActivityIntent.putExtra(EbookDetailsActivity.EBOOK_PATH_INTENT_KEY, info.path.toString());
+
+			startActivity(startEbookDetailsActivityIntent);
+            return true;
+        }
     }
 }

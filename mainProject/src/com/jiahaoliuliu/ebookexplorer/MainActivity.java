@@ -1,5 +1,6 @@
 package com.jiahaoliuliu.ebookexplorer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.dropbox.sync.android.DbxAccountManager;
@@ -28,8 +29,11 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 
 	private static final String LOG_TAG = MainActivity.class.getSimpleName();
 	private static final int REQUEST_LINK_TO_DBX = 1000;
+	
 	private static final String APP_KEY = "znc9n35hujd5e7y";
 	private static final String APP_SECRET = "9j5xc567qroisd7";
+	
+	private static final String EPUB_EXTENSION = ".epub";
 	
 	private LoaderCallbacks<List<DbxFileInfo>> mCallbacks;
 
@@ -168,8 +172,19 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
     @Override
     public void onLoadFinished(Loader<List<DbxFileInfo>> loader, List<DbxFileInfo> data) {
 
+    	// Filter the content
+    	List<DbxFileInfo> filteredData = new ArrayList<DbxFileInfo>();
+    	for (DbxFileInfo fileInfo: data) {
+    		if (!fileInfo.isFolder) {
+    			String fileName = fileInfo.path.getName();
+    			if (fileName.endsWith(EPUB_EXTENSION)) {
+    				filteredData.add(fileInfo);
+    			}
+    		}
+    	}
+    	
         Log.v(LOG_TAG, "Data arrived " + data.toString());
-        ebooksListView.setAdapter(new FolderAdapter(this, data));
+        ebooksListView.setAdapter(new FolderAdapter(this, filteredData));
     }
 
     @Override

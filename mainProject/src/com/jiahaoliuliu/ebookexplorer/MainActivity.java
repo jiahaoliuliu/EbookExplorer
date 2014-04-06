@@ -14,6 +14,7 @@ import com.jiahaoliuliu.ebookexplorer.util.FolderLoader;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
@@ -66,12 +67,18 @@ public class MainActivity extends SherlockFragmentActivity
 	// Layout
 	private Button linkAccountButton;
 	private ListView ebooksListView;
+	
+	// Others
+	private String[] sortBy;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		// Request the progress bar
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
+		// Lock the screen
+		setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		setContentView(R.layout.activity_main);
 
@@ -102,6 +109,7 @@ public class MainActivity extends SherlockFragmentActivity
 	    );
 
 	    // List navigation for the action bar
+	    sortBy = getResources().getStringArray(R.array.sort_by);
 	    Context context = getSupportActionBar().getThemedContext();
 	    ArrayAdapter<CharSequence> list = ArrayAdapter.createFromResource(context, R.array.sort_by, R.layout.sherlock_spinner_item);
 	    list.setDropDownViewResource(R.layout.sherlock_spinner_dropdown_item);
@@ -173,7 +181,8 @@ public class MainActivity extends SherlockFragmentActivity
 
     @Override
     public boolean onNavigationItemSelected(int itemPosition, long itemId) {
-    	Log.v(LOG_TAG, "You have selected the position " + itemPosition);
+    	Log.v(LOG_TAG, "You have selected the position " + itemPosition +
+    			" which is " + sortBy[itemPosition]);
         return true;
     }
 

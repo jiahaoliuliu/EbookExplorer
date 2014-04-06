@@ -3,6 +3,8 @@ package com.jiahaoliuliu.ebookexplorer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.actionbarsherlock.app.ActionBar;
+import com.actionbarsherlock.app.SherlockFragmentActivity;
 import com.dropbox.sync.android.DbxAccountManager;
 import com.dropbox.sync.android.DbxFileInfo;
 import com.dropbox.sync.android.DbxPath;
@@ -24,6 +26,7 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -40,7 +43,8 @@ import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 
-public class MainActivity extends FragmentActivity implements LoaderCallbacks<List<DbxFileInfo>> {
+public class MainActivity extends SherlockFragmentActivity
+	implements LoaderCallbacks<List<DbxFileInfo>>, ActionBar.OnNavigationListener {
 
 	private static final String LOG_TAG = MainActivity.class.getSimpleName();
 	private static final int REQUEST_LINK_TO_DBX = 1000;
@@ -84,35 +88,27 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 			}
 		});
 
+		// List with double tap actions
 		ebooksListView = (ListView)findViewById(R.id.ebooksListView);
-		/*
-		ebooksListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> adapterView, View view, int position,
-					long id) {
-				DbxFileInfo info = (DbxFileInfo)ebooksListView.getAdapter().getItem(position);
-				Log.v(LOG_TAG, "The user has clicked on the file " + info.path.getName() +
-						" with the path " + info.path);
-				
-				Intent startEbookDetailsActivityIntent = new Intent(MainActivity.this, EbookDetailsActivity.class);
-				startEbookDetailsActivityIntent.putExtra(EbookDetailsActivity.EBOOK_NAME_INTENT_KEY, info.path.getName());
-				startEbookDetailsActivityIntent.putExtra(EbookDetailsActivity.EBOOK_PATH_INTENT_KEY, info.path.toString());
-
-				startActivity(startEbookDetailsActivityIntent);
-			}
-		});*/
-		
-	    final GestureDetector gestureDectector = new GestureDetector(this, new GestureListener());        
+		final GestureDetector gestureDectector = new GestureDetector(this, new GestureListener());        
 	    ebooksListView.setOnTouchListener(new OnTouchListener() {
 
-	                @Override
-	                public boolean onTouch(View v, MotionEvent event) {
-	                    gestureDectector.onTouchEvent(event);
-	                    return true;
-	                }
-	            }
+		        @Override
+		        public boolean onTouch(View v, MotionEvent event) {
+		            gestureDectector.onTouchEvent(event);
+		            return true;
+		        }
+		    }
 	    );
+
+	    // List navigation for the action bar
+	    Context context = getSupportActionBar().getThemedContext();
+	    ArrayAdapter<CharSequence> list = ArrayAdapter.createFromResource(context, R.array.sort_by, R.layout.sherlock_spinner_item);
+	    list.setDropDownViewResource(R.layout.sherlock_spinner_dropdown_item);
+
+	    getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+	    getSupportActionBar().setListNavigationCallbacks(list, this);
+
 	}
 
 	@Override
@@ -174,24 +170,12 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 	}
 
 	// ==================================== Menu ==========================================
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
 
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
+    @Override
+    public boolean onNavigationItemSelected(int itemPosition, long itemId) {
+    	Log.v(LOG_TAG, "You have selected the position " + itemPosition);
+        return true;
+    }
 
 	// ==================================== list loader ==========================================
 	@Override

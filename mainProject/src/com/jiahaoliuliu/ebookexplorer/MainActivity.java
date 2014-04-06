@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
@@ -51,8 +52,11 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		// Request the progress bar
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
+
 		setContentView(R.layout.activity_main);
-		
+
 	    mDbxAcctMgr = DbxAccountManager.getInstance(getApplicationContext(), APP_KEY, APP_SECRET);
 	    context = this;
 	    mCallbacks = this;
@@ -166,11 +170,14 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
 	// ==================================== list loader ==========================================
 	@Override
 	public Loader<List<DbxFileInfo>> onCreateLoader(int id, Bundle args) {
+		setProgressBarIndeterminateVisibility(true);
         return new FolderLoader(this, mDbxAcctMgr, DbxPath.ROOT);
 	}
 
     @Override
     public void onLoadFinished(Loader<List<DbxFileInfo>> loader, List<DbxFileInfo> data) {
+
+    	setProgressBarIndeterminateVisibility(false);
 
     	// Filter the content
     	List<DbxFileInfo> filteredData = new ArrayList<DbxFileInfo>();
@@ -182,7 +189,7 @@ public class MainActivity extends FragmentActivity implements LoaderCallbacks<Li
     			}
     		}
     	}
-    	
+
         Log.v(LOG_TAG, "Data arrived " + data.toString());
         ebooksListView.setAdapter(new FolderAdapter(this, filteredData));
     }

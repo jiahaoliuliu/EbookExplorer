@@ -69,6 +69,7 @@ public class MainActivity extends SherlockFragmentActivity
 	// Layout
 	private Button linkAccountButton;
 	private ListView ebooksListView;
+	private FolderAdapter folderAdapter;
 	
 	// The list of ePubs received
 	private List<DbxFileInfo> listContentFiltered;
@@ -186,7 +187,34 @@ public class MainActivity extends SherlockFragmentActivity
 
     @Override
     public boolean onNavigationItemSelected(int itemPosition, long itemId) {
-    	// TODO: Check item
+    	
+    	// Check if the data exists
+    	if (folderAdapter == null || listContentFiltered == null) { 
+    		return false;
+    	}
+
+    	Log.v(LOG_TAG, "The user has selected the position " + itemPosition);
+    	
+    	// Check if the new sortBy is the same as the old one
+    	SortBy newSortBy = SortBy.values()[itemPosition];
+    	if (newSortBy.equals(sortBy)) {
+    		return true;
+    	}
+
+    	sortBy = newSortBy;
+    	switch (sortBy) {
+    	case NAME:
+    		mSortComparator = FolderListComparator.getNameFirst(true);
+    		break;
+
+    	case DATE:
+    		mSortComparator = FolderListComparator.getDateFirst(true);
+    		break;
+    	}
+
+		Collections.sort(listContentFiltered, mSortComparator);
+		folderAdapter.notifyDataSetChanged();
+
         return true;
     }
 
@@ -216,7 +244,8 @@ public class MainActivity extends SherlockFragmentActivity
     	Collections.sort(listContentFiltered, mSortComparator);
 
         Log.v(LOG_TAG, "Data arrived " + listContentFiltered.toString());
-        ebooksListView.setAdapter(new FolderAdapter(this, listContentFiltered));
+        folderAdapter = new FolderAdapter(this, listContentFiltered);
+        ebooksListView.setAdapter(folderAdapter);
     }
 
     @Override

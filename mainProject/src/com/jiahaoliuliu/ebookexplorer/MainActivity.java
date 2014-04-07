@@ -116,13 +116,6 @@ public class MainActivity extends SherlockFragmentActivity
 		    }
 	    );
 
-	    // List navigation for the action bar
-	    ArrayAdapter<SortBy> sortByArrayAdapter = new ArrayAdapter<SortBy>(this, R.layout.sherlock_spinner_item, SortBy.values());
-	    sortByArrayAdapter.setDropDownViewResource(R.layout.sherlock_spinner_dropdown_item);
-
-	    getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-	    getSupportActionBar().setListNavigationCallbacks(sortByArrayAdapter, this);
-
 	}
 
 	@Override
@@ -137,6 +130,16 @@ public class MainActivity extends SherlockFragmentActivity
 			// the user linked the activity
 			boolean restartView = false;
 			retrieveEbooks(restartView);
+			
+			// Set the list navigation mode if it is not
+			if (getSupportActionBar().getNavigationMode() != ActionBar.NAVIGATION_MODE_LIST) {
+			    // List navigation for the action bar
+			    ArrayAdapter<SortBy> sortByArrayAdapter = new ArrayAdapter<SortBy>(this, R.layout.sherlock_spinner_item, SortBy.values());
+			    sortByArrayAdapter.setDropDownViewResource(R.layout.sherlock_spinner_dropdown_item);
+
+			    getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+			    getSupportActionBar().setListNavigationCallbacks(sortByArrayAdapter, this);
+			}
 		}
 	}
 	

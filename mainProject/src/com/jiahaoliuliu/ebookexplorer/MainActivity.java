@@ -1,6 +1,8 @@
 package com.jiahaoliuliu.ebookexplorer;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.actionbarsherlock.app.ActionBar;
@@ -9,6 +11,7 @@ import com.dropbox.sync.android.DbxAccountManager;
 import com.dropbox.sync.android.DbxFileInfo;
 import com.dropbox.sync.android.DbxPath;
 import com.dropbox.sync.android.DbxFileSystem;
+import com.jiahaoliuliu.ebookexplorer.util.FolderListComparator;
 import com.jiahaoliuliu.ebookexplorer.util.FolderLoader;
 
 import android.app.Activity;
@@ -16,13 +19,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.GestureDetector;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.Window;
@@ -31,21 +31,23 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.animation.Interpolator;
-import android.view.animation.OvershootInterpolator;
-import android.widget.FrameLayout;
 
 public class MainActivity extends SherlockFragmentActivity
 	implements LoaderCallbacks<List<DbxFileInfo>>, ActionBar.OnNavigationListener {
+
+	private enum SortBy {
+		NAME, DATE;
+
+		// The constructor if it comes from String
+		public static SortBy toSortyBy(String sortBy) {
+			try {
+				return valueOf(sortBy);
+			} catch (Exception ex) {
+				return NAME;
+			}
+		}
+	}
 
 	private static final String LOG_TAG = MainActivity.class.getSimpleName();
 	private static final int REQUEST_LINK_TO_DBX = 1000;
@@ -68,8 +70,13 @@ public class MainActivity extends SherlockFragmentActivity
 	private Button linkAccountButton;
 	private ListView ebooksListView;
 	
-	// Others
-	private String[] sortBy;
+	// The list of ePubs received
+	private List<DbxFileInfo> listContentFiltered;
+	
+	// To sort the list
+	// The list will be sort by name first
+	private SortBy sortBy = SortBy.NAME;
+    private Comparator<DbxFileInfo> mSortComparator = FolderListComparator.getNameFirst(true);
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -109,13 +116,11 @@ public class MainActivity extends SherlockFragmentActivity
 	    );
 
 	    // List navigation for the action bar
-	    sortBy = getResources().getStringArray(R.array.sort_by);
-	    Context context = getSupportActionBar().getThemedContext();
-	    ArrayAdapter<CharSequence> list = ArrayAdapter.createFromResource(context, R.array.sort_by, R.layout.sherlock_spinner_item);
-	    list.setDropDownViewResource(R.layout.sherlock_spinner_dropdown_item);
+	    ArrayAdapter<SortBy> sortByArrayAdapter = new ArrayAdapter<SortBy>(this, R.layout.sherlock_spinner_item, SortBy.values());
+	    sortByArrayAdapter.setDropDownViewResource(R.layout.sherlock_spinner_dropdown_item);
 
 	    getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
-	    getSupportActionBar().setListNavigationCallbacks(list, this);
+	    getSupportActionBar().setListNavigationCallbacks(sortByArrayAdapter, this);
 
 	}
 
@@ -181,8 +186,7 @@ public class MainActivity extends SherlockFragmentActivity
 
     @Override
     public boolean onNavigationItemSelected(int itemPosition, long itemId) {
-    	Log.v(LOG_TAG, "You have selected the position " + itemPosition +
-    			" which is " + sortBy[itemPosition]);
+    	// TODO: Check item
         return true;
     }
 
@@ -195,22 +199,24 @@ public class MainActivity extends SherlockFragmentActivity
 
     @Override
     public void onLoadFinished(Loader<List<DbxFileInfo>> loader, List<DbxFileInfo> data) {
-
     	setProgressBarIndeterminateVisibility(false);
 
     	// Filter the content
-    	List<DbxFileInfo> filteredData = new ArrayList<DbxFileInfo>();
+    	listContentFiltered = new ArrayList<DbxFileInfo>();
     	for (DbxFileInfo fileInfo: data) {
     		if (!fileInfo.isFolder) {
     			String fileName = fileInfo.path.getName();
     			if (fileName.endsWith(EPUB_EXTENSION)) {
-    				filteredData.add(fileInfo);
+    				listContentFiltered.add(fileInfo);
     			}
     		}
     	}
 
-        Log.v(LOG_TAG, "Data arrived " + data.toString());
-        ebooksListView.setAdapter(new FolderAdapter(this, filteredData));
+    	// Sort the content
+    	Collections.sort(listContentFiltered, mSortComparator);
+
+        Log.v(LOG_TAG, "Data arrived " + listContentFiltered.toString());
+        ebooksListView.setAdapter(new FolderAdapter(this, listContentFiltered));
     }
 
     @Override
